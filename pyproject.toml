@@ -13,7 +13,11 @@ authors = [
 
 dependencies = [
     "matplotlib",
-    "numpy>=1.21",
+    "numpy~=1.26.4",
+    "ipywidgets~=8.1",
+    "ipykernel~=6.29",
+    "pandas",
+    "ipython~=8.29"
 ]
 
 [tool.flit.module]
