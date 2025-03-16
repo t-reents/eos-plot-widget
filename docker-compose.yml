@@ -1,0 +1,8 @@
+services:
+  voila_app:
+    build: .
+    ports:
+      - "8866:8866"
+    volumes:
+      - .:/home/jovyan/eos-widget
+
