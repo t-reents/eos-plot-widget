@@ -1,4 +1,4 @@
-from acwf_paper_plots.plots.common.generate_periodic_tables2 import (
+from acwf_paper_plots.plots.common.generate_periodic_tables import (
     calculate_quantities,
     find_code_measures_max_and_avg,
     plot_periodic_tables,

@@ -6,7 +6,7 @@ from acwf_eos_widget.upload import FileManager
 from acwf_eos_widget.select import UnariesOxidesSelector, Selector
 from acwf_eos_widget.utils import run_periodic_tables
 
-from acwf_paper_plots.plots.common.generate_periodic_tables2 import _get_config
+from acwf_paper_plots.plots.common.generate_periodic_tables import _get_config
 
 class Widget:
     """Widget to plot periodic tables comparing EOS of different DFT codes."""
