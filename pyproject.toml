@@ -7,6 +7,7 @@ name = "acwf-eos-widget"
 version = "0.1.0"
 description = "A widget to plot periodic tables representing comparison metrics of EOS."
 readme = "README.md"
+requires-python = ">=3.9,<3.13"
 authors = [
     { name = "Timo Reents", email = "timo.reents@psi.ch" }
 ]
