@@ -85,6 +85,7 @@ class FileManager:
             ] = custom_name
         
         self.filename_custom_name_map[selected_file] = custom_name
-        self.filename_custom_name_map_rev[custom_name] = selected_file
+        self.filename_custom_name_map_rev[custom_name] = self.filename_custom_name_map_rev.get(
+            selected_file, selected_file
+            )
         print(f"Assigned custom name '{custom_name}' to '{selected_file}'.")
-
