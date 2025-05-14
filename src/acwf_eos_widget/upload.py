@@ -1,6 +1,7 @@
 import os
 import tempfile
 import json
+from pathlib import Path
 
 class FileManager:
     """Class to manage file uploads and data loading."""
@@ -10,25 +11,24 @@ class FileManager:
         self.temp_dir = tempfile.mkdtemp()
         self.filename_custom_name_map = {}
         self.filename_custom_name_map_rev = {}
-        
+
     def process_upload(self, files: list) -> None:
         """Process the uploaded files and save them to the temporary directory."""
         for file_info in files:
-            filename = file_info['name']
-            file_path = os.path.join(self.temp_dir, filename)
-            print(f"Uploading file {filename}...")
-            
-            if os.path.exists(file_path):
-                print(f"File {filename} already exists, skipping upload.")
-                continue
-
+            filename = file_info['name'].replace('.json', '')
+            fd, file_path = tempfile.mkstemp(dir=self.temp_dir, prefix=f"{filename}_")
+            file_path = Path(file_path)
+            os.close(fd)
+  
             with open(file_path, 'wb') as f:
                 f.write(file_info['content'])
-            print(f"File {filename} uploaded successfully and saved to {file_path}")
 
             if filename not in self.available_files:
-                self.available_files.append(filename)
-                
+                self.available_files.append(file_path.name)
+                self._assign_custom_name(file_path.name, filename)
+            else:
+                print(f"File {filename} already exists in the available files list.")
+
     def load_data(self, selected_codes: list, ref_code: str, config: dict) -> dict:
         """Load the selected data files and the reference data file."""
         code_results = {}
@@ -57,17 +57,17 @@ class FileManager:
         ref_code = self.filename_custom_name_map_rev.get(ref_code, ref_code)
         with open(os.path.join(self.temp_dir, ref_code), 'r', encoding='utf-8') as f:
             ref_data = json.load(f)
-        
+
         loaded_data = {
             "code_results": code_results,
             "short_labels": short_labels,
             "reference_short_label": ref_code,
             "compare_plugin_data": ref_data
         }
-        
+
         return loaded_data
-    
-    
+
+
     def _assign_custom_name(self, selected_file: str, custom_name: str):
         """Assign a custom name to the currently selected file."""
         if not selected_file:
@@ -88,4 +88,4 @@ class FileManager:
         self.filename_custom_name_map_rev[custom_name] = self.filename_custom_name_map_rev.get(
             selected_file, selected_file
             )
-        print(f"Assigned custom name '{custom_name}' to '{selected_file}'.")
+        # print(f"Assigned custom name '{custom_name}' to '{selected_file}'.")

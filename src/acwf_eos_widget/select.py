@@ -7,7 +7,7 @@ class UnariesOxidesSelector(widgets.HBox):
     def __init__(self):
         self.button_unaries = widgets.ToggleButton(
             description='Unaries',
-            value=False,
+            value=True,
             layout=widgets.Layout(width='150px'),
             button_style='info'
         )
@@ -24,7 +24,8 @@ class UnariesOxidesSelector(widgets.HBox):
         
     @property
     def set_name(self):
-        self.validate_selection()
+        if not self.validate_selection():
+            return None
         return 'unaries' if self.button_unaries.value else 'oxides'
     
     def on_button_a_change(self, change) -> None:
@@ -45,7 +46,8 @@ class UnariesOxidesSelector(widgets.HBox):
 
     def validate_selection(self) -> None:
         if not (self.button_unaries.value or self.button_oxides.value):
-            raise ValueError("Indicate whether you want to plot unaries or oxides.")
+            return False
+        return True
 
 
 class Selector(widgets.VBox):
