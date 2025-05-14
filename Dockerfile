@@ -5,8 +5,13 @@ COPY . /home/jovyan/eos-widget
 
 
 RUN pip install voila
+RUN pip install seaborn
+RUN pip install plotly
+RUN pip install anywidget
 RUN pip install https://github.com/t-reents/acwf-verification-scripts/archive/refs/heads/imp/gen_periodic_tables.zip
 RUN pip install --no-cache-dir -e .
+
+RUN jupyter trust eos-widget.ipynb
 
 RUN  python -m ipykernel install --user
 
