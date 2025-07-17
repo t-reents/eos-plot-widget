@@ -110,18 +110,25 @@ def _get_data_heatmatp_comparison(data: dict, configuration: str):
     eos_compare_nu = {}
 
     eos_mapping = {
-        k: v[configuration] for k, v in data.items()
+        k: v['BM_fit_data'][configuration] for k, v in data.items()
+    }
+    el, config = configuration.split('-')
+    scale_factors = {
+        k: qc.get_volume_scaling_to_formula_unit(
+            v['num_atoms_in_sim_cell'][configuration],
+            el, config
+        ) for k, v in data.items()
     }
     for comb in product(eos_mapping.keys(), eos_mapping.keys()):
         epsilon = qc.epsilon(
-            eos_mapping[comb[0]]['min_volume'], eos_mapping[comb[0]]['bulk_modulus_ev_ang3'], eos_mapping[comb[0]]['bulk_deriv'],
-            eos_mapping[comb[1]]['min_volume'], eos_mapping[comb[1]]['bulk_modulus_ev_ang3'], eos_mapping[comb[1]]['bulk_deriv'],
+            eos_mapping[comb[0]]['min_volume'] / scale_factors[comb[0]], eos_mapping[comb[0]]['bulk_modulus_ev_ang3'], eos_mapping[comb[0]]['bulk_deriv'],
+            eos_mapping[comb[1]]['min_volume'] / scale_factors[comb[1]], eos_mapping[comb[1]]['bulk_modulus_ev_ang3'], eos_mapping[comb[1]]['bulk_deriv'],
             1, DEFAULT_wb0, DEFAULT_wb1
         )
         
         nu = qc.nu(
-            eos_mapping[comb[0]]['min_volume'], eos_mapping[comb[0]]['bulk_modulus_ev_ang3'], eos_mapping[comb[0]]['bulk_deriv'],
-            eos_mapping[comb[1]]['min_volume'], eos_mapping[comb[1]]['bulk_modulus_ev_ang3'], eos_mapping[comb[1]]['bulk_deriv'],
+            eos_mapping[comb[0]]['min_volume'] / scale_factors[comb[0]], eos_mapping[comb[0]]['bulk_modulus_ev_ang3'], eos_mapping[comb[0]]['bulk_deriv'],
+            eos_mapping[comb[1]]['min_volume'] / scale_factors[comb[1]], eos_mapping[comb[1]]['bulk_modulus_ev_ang3'], eos_mapping[comb[1]]['bulk_deriv'],
             100, DEFAULT_wb0, DEFAULT_wb1
         )
 
@@ -348,6 +355,18 @@ def compare_properties_plotly(data: dict, ref: dict) -> tuple:
     Interactive version of compare_properties using Plotly for interactive box plots of relative differences.
     Returns the plotly Figure and DataFrame.
     """
+    def _scale_data(data, prop, configuration):
+        value = data['BM_fit_data'][configuration][prop]
+        if prop != 'min_volume':
+            return value
+
+        el, config = configuration.split('-')
+        scaling_factor = qc.get_volume_scaling_to_formula_unit(
+            data['num_atoms_in_sim_cell'][f'{el}-{config}'],
+            el, config
+        )
+        return value / scaling_factor
+
     props = ['min_volume', 'bulk_modulus_ev_ang3', 'bulk_deriv']
     configs = set()
     for code_data in data.values():
@@ -361,10 +380,10 @@ def compare_properties_plotly(data: dict, ref: dict) -> tuple:
                 code_config = code_data['BM_fit_data'].get(config)
                 if not code_config:
                     continue
-                value = code_config.get(prop)
+                value = _scale_data(code_data, prop, config)
                 plot_data.append({
                     'config': config,
-                    'Property': prop,
+                    'Property': prop ,
                     'Code': code,
                     'Value': value
                 })
@@ -372,7 +391,7 @@ def compare_properties_plotly(data: dict, ref: dict) -> tuple:
             ref_config = ref['BM_fit_data'].get(config)
             if not ref_config:
                 continue
-            value = ref_config.get(prop)
+            value = _scale_data(ref, prop, config)
             ref_data.append({
                 'config': config,
                 'Property': prop,

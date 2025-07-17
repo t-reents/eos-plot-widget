@@ -203,7 +203,7 @@ class HeatmapWidget:
         
         self.config_dropdown.options = configs
         
-    def _load_data(self, selected_codes):
+    def _load_data(self, selected_codes, sub_keys=None):
         output = {}
         for filename_custom in selected_codes:
             filename = self.file_manager.filename_custom_name_map_rev.get(filename_custom, filename_custom)
@@ -212,13 +212,19 @@ class HeatmapWidget:
                 raise FileNotFoundError(f"File '{filename}' not found in the temporary folder!")
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            output[filename_custom] = data['BM_fit_data']
+            if sub_keys is None:
+                sub_keys = data.keys()
+            if any(sub_key not in data for sub_key in sub_keys):
+                raise KeyError(f"One of the sub-keys {sub_keys} not found in the data for file '{filename_custom}'!")
+            output[filename_custom] = {
+                sub_key: data[sub_key] for sub_key in sub_keys
+            }
         return output
 
     def _update_heatmap(self, _change):
         selected_files = self.selector.codes_selector.value
-        data = self._load_data(selected_files)
-        ref_data = self._load_data((self.selector.ref_selector.value,))
+        data = self._load_data(selected_files, ['BM_fit_data', 'num_atoms_in_sim_cell'])
+        ref_data = self._load_data((self.selector.ref_selector.value,), ['BM_fit_data', 'num_atoms_in_sim_cell'])
         data.update(ref_data)
         self._render_heatmap(data)
 
